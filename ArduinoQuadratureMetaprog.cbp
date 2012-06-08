@@ -382,6 +382,7 @@
 			<Add directory="$(APP_PATH)\arduino-1.0\libraries\Wire" />
 			<Add directory="$(APP_PATH)\arduino-1.0\libraries\Wire\utility" />
 			<Add directory=".\libraries\loki-lib\include" />
+			<Add directory=".\libraries\PinChangeInt" />
 		</Compiler>
 		<Linker>
 			<Add option="-Wl,--gc-sections" />
@@ -416,6 +417,7 @@
 		<Unit filename="cores\wiring_shift.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="libraries\PinChangeInt\PinChangeInt.h" />
 		<Unit filename="libraries\libraries.cpp" />
 		<Unit filename="libraries\loki-lib\include\loki\AbstractFactory.h" />
 		<Unit filename="libraries\loki-lib\include\loki\Allocator.h" />
