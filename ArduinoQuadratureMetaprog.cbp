@@ -387,6 +387,8 @@
 		<Linker>
 			<Add option="-Wl,--gc-sections" />
 		</Linker>
+		<Unit filename="QuadratureCounter.h" />
+		<Unit filename="QuadratureCounter_detail.h" />
 		<Unit filename="cores\CDC.cpp" />
 		<Unit filename="cores\HID.cpp" />
 		<Unit filename="cores\HardwareSerial.cpp" />
