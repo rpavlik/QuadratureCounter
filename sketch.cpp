@@ -9,6 +9,8 @@
 #include <loki/ForEachType.h>
 #include <util/atomic.h>
 
+#include <PinChangeInt.h>
+
 #ifdef ARDUSIM
 #include <cstdio>
 #define  SIMDEBUGMSG(X) std::fprintf(stderr, X "\n");
@@ -92,14 +94,33 @@ namespace Quadrature {
 	template <int PinNumA, int PinNumB>
 	struct PinChangeInterruptLibPolicy {
 		static void registerInterruptHandlers(QuadratureInterruptHandler handlerA, QuadratureInterruptHandler handlerB) {
-
+			PCattachInterrupt(PinNumA, handlerA, CHANGE);
+			PCattachInterrupt(PinNumB, handlerB, CHANGE);
 		}
 	};
+
+	template<int Pin>
+	struct ExternalInterruptNumberTrait;
+
+	#define EXTERNAL_INTERRUPT_TRAIT(PIN, NUM) \
+		template<> \
+		struct ExternalInterruptNumberTrait<PIN> { \
+			enum { \
+				value = NUM \
+			}; \
+		}
+
+	EXTERNAL_INTERRUPT_TRAIT(2, 0);
+	EXTERNAL_INTERRUPT_TRAIT(3, 1);
+
+	/// @todo add Mega support here: 2 (pin 21), 3 (pin 20), 4 (pin 19), and 5 (pin 18).
+	#undef EXTERNAL_INTERRUPT_TRAIT
 
 	template <int PinNumA, int PinNumB>
 	struct ExternalInterruptPolicy {
 		static void registerInterruptHandlers(QuadratureInterruptHandler handlerA, QuadratureInterruptHandler handlerB) {
-
+			attachInterrupt(ExternalInterruptNumberTrait<PinNumA>::value, handlerA, CHANGE);
+			attachInterrupt(ExternalInterruptNumberTrait<PinNumB>::value, handlerB, CHANGE);
 		}
 	};
 
