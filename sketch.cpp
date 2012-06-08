@@ -146,7 +146,7 @@ namespace Quadrature {
 				pinMode(PinNumA, INPUT);
 				pinMode(PinNumB, INPUT);
 				_setInitialQuadratureState(digitalRead(PinNumA), digitalRead(PinNumB));
-				/// @todo register pinchangeint here
+				InterruptPolicy::registerInterruptHandlers(&type::template isr<detail::PinA>, &type::template isr<detail::PinB>);
 			}
 
 			value_type getCounter() {
@@ -162,6 +162,10 @@ namespace Quadrature {
 			volatile CounterType counter;
 			volatile QuadratureInterruptHandler handlers[2];
 
+			template<typename Pin>
+			static void isr() {
+				self->handlers[Pin::index]();
+			}
 
 			template<typename Current, typename Pin>
 			static void handlePinChange() {
