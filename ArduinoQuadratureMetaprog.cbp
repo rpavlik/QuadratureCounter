@@ -338,13 +338,14 @@
 			</Environment>
 		</Build>
 		<Compiler>
-			<Add option="-DF_CPU=16000000L" />
-			<Add option="-DARDUINO=101" />
+			<Add option="-Wall" />
 			<Add option="-fno-exceptions" />
 			<Add option="-ffunction-sections" />
 			<Add option="-fdata-sections" />
 			<Add option="-x c++" />
 			<Add option="-s" />
+			<Add option="-DF_CPU=16000000L" />
+			<Add option="-DARDUINO=101" />
 			<Add option="-DUSE_EEPROM=0" />
 			<Add option="-DUSE_ETHERNET=0" />
 			<Add option="-DUSE_FIRMATA=0" />
@@ -358,7 +359,6 @@
 			<Add option="-DUSE_STEPPER=0" />
 			<Add option="-DUSE_TINYGPS=0" />
 			<Add option="-DUSE_WIRE=0" />
-			<Add option="-Wall" />
 			<Add directory="." />
 			<Add directory=".\cores\arduino" />
 			<Add directory="$(APP_PATH)\arduino-1.0\libraries\EEPROM" />
@@ -378,6 +378,7 @@
 			<Add directory="$(APP_PATH)\arduino-1.0\libraries\TinyGPS" />
 			<Add directory="$(APP_PATH)\arduino-1.0\libraries\Wire" />
 			<Add directory="$(APP_PATH)\arduino-1.0\libraries\Wire\utility" />
+			<Add directory=".\libraries\loki-lib\include" />
 		</Compiler>
 		<Linker>
 			<Add option="-Wl,--gc-sections" />
@@ -413,6 +414,49 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="libraries\libraries.cpp" />
+		<Unit filename="libraries\loki-lib\include\loki\AbstractFactory.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Allocator.h" />
+		<Unit filename="libraries\loki-lib\include\loki\AssocVector.h" />
+		<Unit filename="libraries\loki-lib\include\loki\CachedFactory.h" />
+		<Unit filename="libraries\loki-lib\include\loki\CheckReturn.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Checker.h" />
+		<Unit filename="libraries\loki-lib\include\loki\ConstPolicy.h" />
+		<Unit filename="libraries\loki-lib\include\loki\DataGenerators.h" />
+		<Unit filename="libraries\loki-lib\include\loki\EmptyType.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Factory.h" />
+		<Unit filename="libraries\loki-lib\include\loki\ForEachType.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Function.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Functor.h" />
+		<Unit filename="libraries\loki-lib\include\loki\HierarchyGenerators.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Key.h" />
+		<Unit filename="libraries\loki-lib\include\loki\LevelMutex.h" />
+		<Unit filename="libraries\loki-lib\include\loki\LockingPtr.h" />
+		<Unit filename="libraries\loki-lib\include\loki\LokiExport.h" />
+		<Unit filename="libraries\loki-lib\include\loki\LokiTypeInfo.h" />
+		<Unit filename="libraries\loki-lib\include\loki\MultiMethods.h" />
+		<Unit filename="libraries\loki-lib\include\loki\NullType.h" />
+		<Unit filename="libraries\loki-lib\include\loki\OrderedStatic.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Pimpl.h" />
+		<Unit filename="libraries\loki-lib\include\loki\RefToValue.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Register.h" />
+		<Unit filename="libraries\loki-lib\include\loki\SPCachedFactory.h" />
+		<Unit filename="libraries\loki-lib\include\loki\SafeBits.h" />
+		<Unit filename="libraries\loki-lib\include\loki\SafeFormat.h" />
+		<Unit filename="libraries\loki-lib\include\loki\ScopeGuard.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Sequence.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Singleton.h" />
+		<Unit filename="libraries\loki-lib\include\loki\SmallObj.h" />
+		<Unit filename="libraries\loki-lib\include\loki\SmartPtr.h" />
+		<Unit filename="libraries\loki-lib\include\loki\StrongPtr.h" />
+		<Unit filename="libraries\loki-lib\include\loki\ThreadLocal.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Threads.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Tuple.h" />
+		<Unit filename="libraries\loki-lib\include\loki\TypeManip.h" />
+		<Unit filename="libraries\loki-lib\include\loki\TypeTraits.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Typelist.h" />
+		<Unit filename="libraries\loki-lib\include\loki\TypelistMacros.h" />
+		<Unit filename="libraries\loki-lib\include\loki\Visitor.h" />
+		<Unit filename="libraries\loki-lib\include\loki\static_check.h" />
 		<Unit filename="sketch.cpp" />
 		<Extensions>
 			<code_completion />

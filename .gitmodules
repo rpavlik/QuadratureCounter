@@ -1,0 +1,3 @@
+[submodule "libraries/loki-lib"]
+	path = libraries/loki-lib
+	url = https://github.com/snaewe/loki-lib.git
