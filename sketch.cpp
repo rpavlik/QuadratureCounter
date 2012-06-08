@@ -9,6 +9,7 @@
 #include <loki/Typelist.h>
 #include <loki/TypelistMacros.h>
 #include <loki/ForEachType.h>
+#include <util/atomic.h>
 
 #ifdef ARDUSIM
 #include <cstdio>
@@ -17,166 +18,180 @@
 #define SIMDEBUGMSG(X)
 #endif
 
-template<bool A, bool B>
-struct BoolPair {
-	typedef BoolPair<A, B> type;
-	enum {
-		valueA = A,
-		valueB = B
-	};
-};
+namespace Quadrature {
+	typedef void (*QuadratureInterruptHandler)(void);
+	namespace detail {
+		template<bool A, bool B>
+		struct BoolPair {
+			typedef BoolPair<A, B> type;
+			enum {
+				valueA = A,
+				valueB = B
+			};
+		};
 
-typedef typename Loki::TL::MakeTypelist<BoolPair<0, 0>, BoolPair<0, 1>, BoolPair<1, 1>, BoolPair<1, 0> >::Result QuadratureSequence;
+		typedef
+			Loki::TL::MakeTypelist<BoolPair<0, 0>, BoolPair<0, 1>, BoolPair<1, 1>, BoolPair<1, 0> >::Result
+			QuadratureSequence;
 
-typedef void (*QuadratureInterruptHandler)(void);
-
-int16_t counter = 0;
-QuadratureInterruptHandler handlers[2];
-/*
-
-template<typename Current>
-struct GetPrev {
-	enum {
-		value = (IndexOf<QuadratureSequence, Current>::value - 1 ) % 4
-	};
-
-	typedef typename TypeAt<QuadratureSequence, value>::type type;
-};
-template<typename Current>
-struct GetNext {
-	enum {
-		value = (IndexOf<QuadratureSequence, Current>::value + 1 ) % 4
-	};
-	typedef TypeAt<QuadratureSequence, value>::type type;
-	enum {
-		valueA = type::valueA,
-		valueB = type::valueB
-	};
-};
-*/
-
-template<typename Current, int Direction>
-struct Iterate {
-	enum {
-		value = (::Loki::TL::IndexOf<QuadratureSequence, Current>::value + Direction ) % 4
-	};
-	typedef typename ::Loki::TL::TypeAt<QuadratureSequence, value>::Result type;
-	enum {
-		valueA = type::valueA,
-		valueB = type::valueB
-	};
-};
-struct PinA {
-	enum {
-		index = 0
-	};
-};
-struct PinB {
-	enum {
-		index = 1
-	};
-};
-
-template<bool CurrentVal, bool NextVal>
-struct ForwardIfDifferent {
-	enum {
-		value = 1
-	};
-};
-
-template<bool Val>
-struct ForwardIfDifferent<Val, Val> {
-	enum {
-		value = 0
-	};
-};
-
-template<bool Forward>
-struct GetDirectionValue;
-template<>
-struct GetDirectionValue<true> {
-	enum {
-		value = 1
-	};
-};
-
-template<>
-struct GetDirectionValue<false> {
-	enum {
-		value = -1
-	};
-};
-template<typename Current, typename Pin>
-struct GetDirectionForChanges;
-template<typename Current>
-struct GetDirectionForChanges <Current, PinA> {
-	enum {
-		value = ForwardIfDifferent<Iterate<Current, 1>::valueA, Current::valueA>::value
-	};
-};
-
-template<typename Current>
-struct GetDirectionForChanges <Current, PinB> {
-	enum {
-		value = ForwardIfDifferent<Iterate<Current, 1>::valueB, Current::valueB>::value
-	};
-};
+		template<typename Current, int Direction>
+		struct Iterate {
+			enum {
+				value = (::Loki::TL::IndexOf<QuadratureSequence, Current>::value + Direction ) % 4
+			};
+			typedef typename ::Loki::TL::TypeAt<QuadratureSequence, value>::Result type;
+			enum {
+				valueA = type::valueA,
+				valueB = type::valueB
+			};
+		};
+		struct PinA {
+			enum {
+				index = 0
+			};
+		};
+		struct PinB {
+			enum {
+				index = 1
+			};
+		};
 
 
 
+		template<bool CurrentVal, bool NextVal>
+		struct ForwardIfDifferent {
+			enum {
+				value = 1
+			};
+		};
 
-template<typename NewState>
-void setQuadratureState();
+		template<bool Val>
+		struct ForwardIfDifferent<Val, Val> {
+			enum {
+				value = 0
+			};
+		};
 
-template<typename Current, typename Pin>
-void handlePinChange() {
-	enum {
-		direction = GetDirectionForChanges<Current, Pin>::value
-	};
-	counter += direction;
-	setQuadratureState<typename Iterate<Current, direction>::type> ();
-}
+		template<typename Current, typename Pin>
+		struct GetDirectionForChanges;
+		template<typename Current>
+		struct GetDirectionForChanges <Current, PinA> {
+			enum {
+				value = ForwardIfDifferent<Iterate<Current, 1>::valueA, Current::valueA>::value
+			};
+		};
 
-template<typename NewState>
-void setQuadratureState() {
-	handlers[PinA::index] = &handlePinChange<NewState, PinA>;
-	handlers[PinB::index] = &handlePinChange<NewState, PinB>;
-}
+		template<typename Current>
+		struct GetDirectionForChanges <Current, PinB> {
+			enum {
+				value = ForwardIfDifferent<Iterate<Current, 1>::valueB, Current::valueB>::value
+			};
+		};
 
-namespace {
-	struct Callable {
+	} // end of namespace detail
 
-		bool valA;
-		bool valB;
-		template<int Index, typename type>
-		inline void operator()() {
-			//typedef typename ::Loki::TL::TypeAt<QuadratureSequence, Index>::Result type;
-			if (valA == type::valueA && valB == type::valueB) {
-				SIMDEBUGMSG("got it!");
-				setQuadratureState<type>();
-			} else {
 
-				SIMDEBUGMSG("miss!");
-			}
+	template <int PinNumA, int PinNumB>
+	struct PinChangeInterruptLibPolicy {
+		static void registerInterruptHandlers(QuadratureInterruptHandler handlerA, QuadratureInterruptHandler handlerB) {
+
 		}
 	};
-	inline void setQuadratureState(bool A, bool B) {
-		SIMDEBUGMSG("starting foreach");
-		Callable c = {A, B};
-		Loki::ForEachType<QuadratureSequence, Callable> dummy(c);
-	}
-}
 
+	template <int PinNumA, int PinNumB>
+	struct ExternalInterruptPolicy {
+		static void registerInterruptHandlers(QuadratureInterruptHandler handlerA, QuadratureInterruptHandler handlerB) {
+
+		}
+	};
+
+	template <int PinNumA, int PinNumB>
+	struct DefaultInterruptPolicy : PinChangeInterruptLibPolicy<PinNumA, PinNumB> {};
+
+	// Hardware external interrupts
+	template <>
+	struct DefaultInterruptPolicy<2, 3> : ExternalInterruptPolicy<2, 3> {};
+
+	template<int PinNumA, int PinNumB, typename CounterType = int16_t, typename InterruptPolicy = DefaultInterruptPolicy<PinNumA, PinNumB> >
+	class QuadratureCounter {
+		public:
+			typedef QuadratureCounter<PinNumA, PinNumB, CounterType> type;
+			typedef CounterType value_type;
+
+			QuadratureCounter()
+				: counter(0) {
+				self = this;
+			}
+
+			void begin() {
+				pinMode(PinNumA, INPUT);
+				pinMode(PinNumB, INPUT);
+				_setInitialQuadratureState(digitalRead(PinNumA), digitalRead(PinNumB));
+				/// @todo register pinchangeint here
+			}
+
+			value_type getCounter() {
+				value_type ctrcopy;
+				ATOMIC_BLOCK(ATOMIC_RESTORESTATE )
+				{
+					ctrcopy = counter;
+				}
+				return ctrcopy;
+			}
+		private:
+			static type * self;
+			volatile CounterType counter;
+			volatile QuadratureInterruptHandler handlers[2];
+
+
+			template<typename Current, typename Pin>
+			static void handlePinChange() {
+				enum {
+					direction = detail::GetDirectionForChanges<Current, Pin>::value
+				};
+				self->counter += direction;
+				setQuadratureState<typename detail::Iterate<Current, direction>::type> ();
+			}
+
+			template<typename NewState>
+			static void setQuadratureState() {
+				self->handlers[detail::PinA::index] = &handlePinChange<NewState, detail::PinA>;
+				self->handlers[detail::PinB::index] = &handlePinChange<NewState, detail::PinB>;
+			}
+
+			struct ConditionalQuadratureStateSetter {
+				bool valA;
+				bool valB;
+				template<int Index, typename type>
+				inline void operator()() {
+					//typedef typename ::Loki::TL::TypeAt<QuadratureSequence, Index>::Result type;
+					if (valA == type::valueA && valB == type::valueB) {
+						SIMDEBUGMSG("got it!");
+						setQuadratureState<type>();
+					} else {
+
+						SIMDEBUGMSG("miss!");
+					}
+				}
+			};
+
+			inline void _setInitialQuadratureState(bool A, bool B) {
+				SIMDEBUGMSG("starting foreach");
+				ConditionalQuadratureStateSetter c = {A, B};
+				Loki::ForEachType<detail::QuadratureSequence, ConditionalQuadratureStateSetter> dummy(c);
+			}
+	};
+	// Definition of static variable in template.
+	template<int PinNumA, int PinNumB, typename CounterType, typename InterruptPolicy>
+	typename QuadratureCounter<PinNumA, PinNumB, CounterType, InterruptPolicy>::type * QuadratureCounter<PinNumA, PinNumB, CounterType, InterruptPolicy>::self = NULL;
+
+} // end of namespace Quadrature
+
+Quadrature::QuadratureCounter<4, 5> qc;
 void setup()
 {
-	// initialize the digital pin as an output.
-	// Pin 13 has an LED connected on most Arduino boards:
-	pinMode(13, OUTPUT);
-
 	Serial.begin(9600);
-	pinMode(4, INPUT);
-	pinMode(5, INPUT);
-	setQuadratureState(digitalRead(4), digitalRead(5));
+	qc.begin();
 }
 
 void loop()
